@@ -1,0 +1,354 @@
+[
+    {
+        "id": "95129aaec67aabdd",
+        "type": "tab",
+        "label": "Smart Camera",
+        "disabled": false,
+        "info": "Wykonał - Marcin Adrych"
+    },
+    {
+        "id": "3da6e34d1aec7a27",
+        "type": "inject",
+        "z": "95129aaec67aabdd",
+        "name": "Inject",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "10",
+        "topic": "",
+        "payloadType": "str",
+        "x": 70,
+        "y": 100,
+        "wires": [
+            [
+                "fc54e0fb0489e233"
+            ]
+        ]
+    },
+    {
+        "id": "b9db1be90d97018c",
+        "type": "post-object-detection",
+        "z": "95129aaec67aabdd",
+        "classesURL": "https://s3.sjc.us.cloud-object-storage.appdomain.cloud/tfjs-cos/cocossd/classes.json",
+        "iou": "0.5",
+        "minScore": "0.5",
+        "name": "post-processing",
+        "x": 500,
+        "y": 360,
+        "wires": [
+            [
+                "e60a9d0d1a7def18"
+            ]
+        ]
+    },
+    {
+        "id": "7def250d220c16b8",
+        "type": "tf-function",
+        "z": "95129aaec67aabdd",
+        "name": "pre-processing",
+        "func": "const image = tf.tidy(() => {\n  return tf.node.decodeImage(msg.payload, 3).expandDims(0);\n});\n\nmsg.image = msg.payload;\nmsg.payload = { image_tensor: image }\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 360,
+        "y": 240,
+        "wires": [
+            [
+                "9d0dc5fd561bdca7"
+            ]
+        ]
+    },
+    {
+        "id": "9d0dc5fd561bdca7",
+        "type": "tf-model",
+        "z": "95129aaec67aabdd",
+        "modelURL": "https://storage.googleapis.com/tfjs-models/savedmodel/ssdlite_mobilenet_v2/model.json",
+        "outputNode": "",
+        "name": "COCO SSD lite",
+        "x": 480,
+        "y": 300,
+        "wires": [
+            [
+                "b9db1be90d97018c"
+            ]
+        ]
+    },
+    {
+        "id": "51a56223dd1ad616",
+        "type": "image viewer",
+        "z": "95129aaec67aabdd",
+        "name": "Wykrycie obiektu (podgląd)",
+        "width": "600",
+        "data": "payload",
+        "dataType": "msg",
+        "active": true,
+        "x": 1280,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "e60a9d0d1a7def18",
+        "type": "json",
+        "z": "95129aaec67aabdd",
+        "name": "",
+        "property": "payload",
+        "action": "str",
+        "pretty": false,
+        "x": 670,
+        "y": 440,
+        "wires": [
+            [
+                "e2792d19fee44da0"
+            ]
+        ]
+    },
+    {
+        "id": "e2792d19fee44da0",
+        "type": "switch",
+        "z": "95129aaec67aabdd",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "cont",
+                "v": "person",
+                "vt": "str"
+            },
+            {
+                "t": "false"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 830,
+        "y": 440,
+        "wires": [
+            [
+                "d95176e8ce6ac813"
+            ],
+            [
+                "031a6a5f107c5856"
+            ]
+        ]
+    },
+    {
+        "id": "336737393e0d306e",
+        "type": "telegram sender",
+        "z": "95129aaec67aabdd",
+        "name": "",
+        "bot": "1f18d6d68530ff5b",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 1390,
+        "y": 320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c94b66dee13ba76d",
+        "type": "function",
+        "z": "95129aaec67aabdd",
+        "name": "Message",
+        "func": "msg.payload = {}\nmsg.payload.chatId = 2106708045,\nmsg.payload.type = 'message',\nmsg.payload.content = 'Uwaga. Wykryto obiekt!'\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 100,
+        "y": 780,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "031a6a5f107c5856",
+        "type": "debug",
+        "z": "95129aaec67aabdd",
+        "name": "≠ Człowiek",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 990,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "d95176e8ce6ac813",
+        "type": "json",
+        "z": "95129aaec67aabdd",
+        "name": "",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 990,
+        "y": 360,
+        "wires": [
+            [
+                "699353a45df14760"
+            ]
+        ]
+    },
+    {
+        "id": "699353a45df14760",
+        "type": "bbox-image",
+        "z": "95129aaec67aabdd",
+        "strokeWidth": "4",
+        "fontSize": "16",
+        "objectsProp": "payload",
+        "objectsPropType": "msg",
+        "imageProp": "image",
+        "imagePropType": "msg",
+        "name": "bounding-box",
+        "x": 1080,
+        "y": 240,
+        "wires": [
+            [
+                "7017c5c2e4dc6095"
+            ]
+        ]
+    },
+    {
+        "id": "7017c5c2e4dc6095",
+        "type": "function",
+        "z": "95129aaec67aabdd",
+        "name": "Wysłanie alertu dotyczącego persona",
+        "func": "var pl = {\n  caption: `ZAUWAŻYŁEM CZŁOWIEKA !!! 👮`,\n  content: msg.payload, // <-- check msg.payload is a buffer\n  type : 'photo',\n  chatId: 2106708045 // <--  set chat id number\n}\nmsg.payload = pl;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1350,
+        "y": 240,
+        "wires": [
+            [
+                "336737393e0d306e"
+            ]
+        ]
+    },
+    {
+        "id": "778c9b10dddbe0a7",
+        "type": "comment",
+        "z": "95129aaec67aabdd",
+        "name": "",
+        "info": "Wysłanie tylko wiadomości na telegram",
+        "x": 100,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "fc54e0fb0489e233",
+        "type": "http request",
+        "z": "95129aaec67aabdd",
+        "name": "",
+        "method": "GET",
+        "ret": "bin",
+        "paytoqs": "body",
+        "url": "http://192.168.0.207/cgi-bin/snapshot.cgi?1",
+        "tls": "",
+        "persist": true,
+        "proxy": "",
+        "authType": "digest",
+        "senderr": false,
+        "x": 310,
+        "y": 180,
+        "wires": [
+            [
+                "7def250d220c16b8"
+            ]
+        ]
+    },
+    {
+        "id": "fa78e45afbe4f797",
+        "type": "comment",
+        "z": "95129aaec67aabdd",
+        "name": "comment",
+        "info": "Edytując węzeł inject możemy ustawić częstotliwość wykonywania się flow, jak i automatyczne uruchomienie przepływu.\n\n// Kamery i RPI pracują w tej samej sieci",
+        "x": 60,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "f5dab52e131991cd",
+        "type": "comment",
+        "z": "95129aaec67aabdd",
+        "name": "",
+        "info": "Http request wykonuje zapytanie do naszej strony z kamerą.\n\n- należy mieć zaznaczone użycie uwierzytelniania z wprowadzonym loginem i hasłem oraz wybranie typu uwierzytelniania na \"digest\"",
+        "x": 320,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "d0da6458825b743d",
+        "type": "comment",
+        "z": "95129aaec67aabdd",
+        "name": "",
+        "info": "Wysłanie zdjęcia z wykrytym obiektem na telefon/komputer na aplikację telegram.\n\n!!! POTRZEBA KRÓTKIEJ KONFIGURACJI  !!!",
+        "x": 1410,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "c89af6e0d528f5f5",
+        "type": "comment",
+        "z": "95129aaec67aabdd",
+        "name": "",
+        "info": "W węźle switch ustawiona została wartość interesującego nas obiektu.",
+        "x": 840,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "f831e2fb6bf1e834",
+        "type": "comment",
+        "z": "95129aaec67aabdd",
+        "name": "",
+        "info": "Możemy podpiąć ten węzeł tuż za węzłem \"bounding-box\" w celu podglądu wykrywanego obiektu.\n\nWAŻNE!\nPodgląd działa tylko i wyłączenie wtedy gdy zostanie wykryty obiekt zdefiniowany w węźle switch.",
+        "x": 1290,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "1f18d6d68530ff5b",
+        "type": "telegram bot",
+        "botname": "",
+        "usernames": "",
+        "chatids": "",
+        "baseapiurl": "",
+        "updatemode": "polling",
+        "pollinterval": "300",
+        "usesocks": false,
+        "sockshost": "",
+        "socksport": "6667",
+        "socksusername": "anonymous",
+        "sockspassword": "",
+        "bothost": "",
+        "botpath": "",
+        "localbotport": "8443",
+        "publicbotport": "8443",
+        "privatekey": "",
+        "certificate": "",
+        "useselfsignedcertificate": false,
+        "sslterminated": false,
+        "verboselogging": false
+    }
+]
