@@ -1,0 +1,241 @@
+[
+    {
+        "id": "6fc3395cf12db18d",
+        "type": "tab",
+        "label": "Collecting data from API",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "8a5201a74d2bab91",
+        "type": "inject",
+        "z": "6fc3395cf12db18d",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 180,
+        "y": 100,
+        "wires": [
+            [
+                "3893b8e3b87b2638"
+            ]
+        ]
+    },
+    {
+        "id": "3893b8e3b87b2638",
+        "type": "http request",
+        "z": "6fc3395cf12db18d",
+        "name": "",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://random-data-api.com/api/coffee/random_coffee",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "x": 410,
+        "y": 100,
+        "wires": [
+            [
+                "9d20474dd3fc018d",
+                "9beb39955ed55e7a"
+            ]
+        ]
+    },
+    {
+        "id": "a2ce072ffe18ede1",
+        "type": "function",
+        "z": "6fc3395cf12db18d",
+        "name": "",
+        "func": "let coffe_name = msg.payload.blend_name;\n\nmsg.params = [coffe_name];\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 300,
+        "wires": [
+            [
+                "22b6fe1ab04a45be"
+            ]
+        ]
+    },
+    {
+        "id": "22b6fe1ab04a45be",
+        "type": "postgresql",
+        "z": "6fc3395cf12db18d",
+        "name": "",
+        "query": "INSERT INTO test (coffe_name) VALUES ($1);",
+        "postgreSQLConfig": "895d863dd0cea8a8",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 770,
+        "y": 340,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "97d25518af06990a",
+        "type": "json",
+        "z": "6fc3395cf12db18d",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": true,
+        "x": 410,
+        "y": 200,
+        "wires": [
+            [
+                "a2ce072ffe18ede1",
+                "14f4ffbae02b3dc7"
+            ]
+        ]
+    },
+    {
+        "id": "9d20474dd3fc018d",
+        "type": "amqp out",
+        "z": "6fc3395cf12db18d",
+        "name": "",
+        "routingkey": "",
+        "iotype": "4",
+        "ioname": "task_queue",
+        "server": "b18f586a2e810c5d",
+        "x": 630,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "4eae8b55d04f7905",
+        "type": "comment",
+        "z": "6fc3395cf12db18d",
+        "name": "Konfiguracja postgresa",
+        "info": "Otwieramy pg_admin, wybieramy databases, następnie\npostgres (domyślna), następnie tworzymy nową tabelę.\n\nDla testu możemy utworzyć tabelę \"test\"\n- z jedną kolumną o nazwie \"coffe_name\"\n\n\n\n\nKonfiguracja węzła postgres:\n\ndatabase = postgres\nport = 5432\nsecurity = login: postgres hasło: postgres",
+        "x": 780,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "4b0c25b6bf2f6aa5",
+        "type": "comment",
+        "z": "6fc3395cf12db18d",
+        "name": "Konfiguracja postgresa",
+        "info": "Ustawiamy serwer rabbita:\nlocal:5432\n\nREAD FROM ustawiamy na \"queue\"\n\nPREFETCH\n- zaznaczamy \"enable prefetch\", value = 1",
+        "x": 200,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "9beb39955ed55e7a",
+        "type": "debug",
+        "z": "6fc3395cf12db18d",
+        "name": "Dane otrzymane z api i wysłane do kolejki",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 760,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "14f4ffbae02b3dc7",
+        "type": "debug",
+        "z": "6fc3395cf12db18d",
+        "name": "Dane po zmianie na object Json ",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 750,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "ce40f5fbeb696075",
+        "type": "amqp in",
+        "z": "6fc3395cf12db18d",
+        "name": "",
+        "topic": "",
+        "iotype": "4",
+        "ioname": "task_queue",
+        "server": "b18f586a2e810c5d",
+        "x": 210,
+        "y": 200,
+        "wires": [
+            [
+                "97d25518af06990a"
+            ]
+        ]
+    },
+    {
+        "id": "895d863dd0cea8a8",
+        "type": "postgreSQLConfig",
+        "name": "",
+        "host": "127.0.0.1",
+        "hostFieldType": "str",
+        "port": "5432",
+        "portFieldType": "num",
+        "database": "postgres",
+        "databaseFieldType": "str",
+        "ssl": "false",
+        "sslFieldType": "bool",
+        "max": "10",
+        "maxFieldType": "num",
+        "min": "1",
+        "minFieldType": "num",
+        "idle": "1000",
+        "idleFieldType": "num",
+        "connectionTimeout": "10000",
+        "connectionTimeoutFieldType": "num",
+        "user": "postgres",
+        "userFieldType": "str",
+        "password": "postgres",
+        "passwordFieldType": "str"
+    },
+    {
+        "id": "b18f586a2e810c5d",
+        "type": "amqp-server",
+        "host": "localhost",
+        "port": "5672",
+        "vhost": "",
+        "keepalive": "30",
+        "usetls": false,
+        "verifyservercert": true,
+        "useca": false,
+        "ca": "",
+        "usetopology": false,
+        "topology": "{\n\t\"exchanges\": [\n\t\t{\"name\": \"exchange1\", \"type\": \"direct\", \"options\": {\"durable\": false}},\n\t\t{\"name\": \"exchange2\"}\n\t],\n\t\"queues\": [\n\t\t{\"name\": \"queue1\", \"options\": {\"messageTtl\": 60000}},\n\t\t{\"name\": \"queue2\"}\n\t],\n\t\"bindings\": [\n\t\t{\"source\": \"exchange1\", \"queue\": \"queue1\", \"pattern\": \"debug\", \"args\": {}},\n\t\t{\"source\": \"exchange1\", \"exchange\": \"exchange2\", \"pattern\": \"error\"},\n\t\t{\"source\": \"exchange2\", \"queue\": \"queue2\"}\n\t]\n}",
+        "prefetch": true,
+        "prefetchvalue": "1",
+        "prefetchack": true,
+        "prefetchvalueack": "0.5"
+    }
+]
